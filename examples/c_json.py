@@ -144,8 +144,8 @@ def _parse_coord(coord_str):
 
     vals = coord_str.split(':')
     vals.extend([None] * 3)
-    filename, line, column = vals[:3]
-    return Coord(filename, line, column)
+    filename, line, length, column = vals[:4]
+    return Coord(filename, line, length, column)
 
 
 def _convert_to_obj(value):

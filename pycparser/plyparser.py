@@ -14,17 +14,20 @@ class Coord(object):
     """ Coordinates of a syntactic element. Consists of:
             - File name
             - Line number
+            - (optional) Length in lines
             - (optional) column number, for the Lexer
     """
-    __slots__ = ('file', 'line', 'column', '__weakref__')
-    def __init__(self, file, line, column=None):
+    __slots__ = ('file', 'line', 'length', 'column', '__weakref__')
+    def __init__(self, file, line, length=None, column=None):
         self.file = file
         self.line = line
-        self.column = column
+        self.length = length
+        self.column = column 
 
     def __str__(self):
         str = "%s:%s" % (self.file, self.line)
         if self.column: str += ":%s" % self.column
+        if self.length: str += " len:%s" % self.length
         return str
 
 
@@ -46,10 +49,11 @@ class PLYParser(object):
         optrule.__name__ = 'p_%s' % optname
         setattr(self.__class__, optrule.__name__, optrule)
 
-    def _coord(self, lineno, column=None):
+    def _coord(self, lineno, length=None, column=None):
         return Coord(
                 file=self.clex.filename,
                 line=lineno,
+                length=length,
                 column=column)
 
     def _token_coord(self, p, token_idx):
@@ -61,8 +65,9 @@ class PLYParser(object):
         if last_cr < 0:
             last_cr = -1
         column = (p.lexpos(token_idx) - (last_cr))
-        return self._coord(p.lineno(token_idx), column)
-
+        length = p.lineno(len(p) - 1) - p.lineno(token_idx) + 1 
+        return self._coord(p.lineno(token_idx), length, column)
+    
     def _parse_error(self, msg, coord):
         raise ParseError("%s: %s" % (coord, msg))
 
